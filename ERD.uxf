@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>80</x>
+      <y>50</y>
+      <w>130</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>Users
+--
+user_id(pk)
+fName
+lName
+email
+password_hash
+role
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>360</x>
+      <y>50</y>
+      <w>120</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>Availability
+--
+availability_id(pk)
+user_id(fk)
+date
+available_start
+available_end
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>200</x>
+      <y>40</y>
+      <w>180</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+</panel_attributes>
+    <additional_attributes>10.0;20.0;160.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>90</x>
+      <y>270</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>Users</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>180</x>
+      <y>270</y>
+      <w>190</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;170.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>350</x>
+      <y>270</y>
+      <w>110</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>Time_Off_Reqs
+--
+request_id(pk)
+user_id(fk)
+start_date
+end_date
+reason
+status</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>440</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>Users</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>310</x>
+      <y>440</y>
+      <w>100</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>Rota
+--
+rota_id(pk)
+user_id(fk)
+week_start
+shift_start
+shift_end
+total_hours
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>150</x>
+      <y>440</y>
+      <w>180</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;160.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>630</y>
+      <w>100</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>Rotas
+--
+rota_id(pk,fk)
+user_id(fk)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>310</x>
+      <y>630</y>
+      <w>140</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>AI_Gen
+--
+gen_id
+rota_id
+algorithim_version
+confidence_score</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>130</x>
+      <y>630</y>
+      <w>200</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;180.0;10.0</additional_attributes>
+  </element>
+</diagram>
