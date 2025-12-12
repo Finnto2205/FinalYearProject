@@ -173,40 +173,40 @@ function App() {
 
   return (
     <div className="App">
-      <header className="app-header">
-        <div className="header-content">
-          <div className="header-left">
+      <header className="appHeader">
+        <div className="headerContent">
+          <div className="headerLeft">
             <h1>Rota Management System</h1>
             <p>Employee Scheduling & Time Off Management - Proof of Concept</p>
           </div>
-          <div className="header-right">
-            <div className="user-info">
-              <span className="user-name">{user?.fullName}</span>
-              <span className={`user-role ${user?.role}`}>{user?.role?.toUpperCase()}</span>
+          <div className="headerRight">
+            <div className="userInfo">
+              <span className="userName">{user?.fullName}</span>
+              <span className={`userRole ${user?.role}`}>{user?.role?.toUpperCase()}</span>
             </div>
-            <button className="btn-logout" onClick={handleLogout}>
+            <button className="logoutButton" onClick={handleLogout}>
               Logout
             </button>
           </div>
         </div>
       </header>
 
-      <nav className="app-nav">
+      <nav className="appNavbar">
         <button
-          className={`nav-tab ${activeTab === 'schedule' ? 'active' : ''}`}
+          className={`navTab ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
         >
           {user?.role === 'admin' ? 'Schedule View' : 'My Schedule'}
         </button>
         <button
-          className={`nav-tab ${activeTab === 'timeoff' ? 'active' : ''}`}
+          className={`navTab ${activeTab === 'timeoff' ? 'active' : ''}`}
           onClick={() => setActiveTab('timeoff')}
         >
           {user?.role === 'admin' ? 'Time Off Management' : 'Request Time Off'}
         </button>
       </nav>
 
-      <main className="app-content">
+      <main className="contents">
         {activeTab === 'schedule' && (
           <ScheduleView
             scheduleData={scheduleData}
@@ -230,7 +230,7 @@ function App() {
         )}
       </main>
 
-      <footer className="app-footer">
+      <footer className="appFooter">
         <p>Rota Management System - Proof of Concept © 2026 | Mock Data Demo</p>
       </footer>
     </div>
