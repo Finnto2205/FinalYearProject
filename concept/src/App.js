@@ -53,32 +53,32 @@ function App() {
     {
       id: 1,
       employee: 'Alice Johnson',
-      startDate: '2025-12-15',
-      endDate: '2025-12-17',
+      startDate: '2026-12-15',
+      endDate: '2026-12-17',
       type: 'vacation',
       reason: 'Family holiday',
       status: 'pending',
-      requestedDate: '2025-12-05'
+      requestedDate: '2026-12-05'
     },
     {
       id: 2,
       employee: 'Bob Smith',
-      startDate: '2025-12-20',
-      endDate: '2025-12-22',
+      startDate: '2026-12-20',
+      endDate: '2026-12-22',
       type: 'sick',
       reason: 'Medical appointment',
       status: 'approved',
-      requestedDate: '2025-12-03'
+      requestedDate: '2026-12-03'
     },
     {
       id: 3,
       employee: 'Carol White',
-      startDate: '2025-12-18',
-      endDate: '2025-12-18',
+      startDate: '2026-12-18',
+      endDate: '2026-12-18',
       type: 'personal',
       reason: '',
       status: 'pending',
-      requestedDate: '2025-12-08'
+      requestedDate: '2026-12-08'
     }
   ]);
 
@@ -108,22 +108,22 @@ function App() {
   const handleScheduleChange = (week, day, shift, employee, isAssigned) => {
     setScheduleData(prevData => {
       const newData = { ...prevData };
-      
+
       // Initialize week if it doesn't exist
       if (!newData[week]) {
         newData[week] = {};
       }
-      
+
       // Initialize day if it doesn't exist
       if (!newData[week][day]) {
         newData[week][day] = {};
       }
-      
+
       // Initialize shift if it doesn't exist
       if (!newData[week][day][shift]) {
         newData[week][day][shift] = [];
       }
-      
+
       // Toggle employee assignment
       if (isAssigned) {
         // Remove employee from shift
@@ -132,7 +132,7 @@ function App() {
         // Add employee to shift
         newData[week][day][shift] = [...newData[week][day][shift], employee];
       }
-      
+
       return newData;
     });
   };
@@ -156,13 +156,13 @@ function App() {
   };
 
   const handleApproveRequest = (id) => {
-    setTimeOffRequests(timeOffRequests.map(req => 
+    setTimeOffRequests(timeOffRequests.map(req =>
       req.id === id ? { ...req, status: 'approved' } : req
     ));
   };
 
   const handleDenyRequest = (id) => {
-    setTimeOffRequests(timeOffRequests.map(req => 
+    setTimeOffRequests(timeOffRequests.map(req =>
       req.id === id ? { ...req, status: 'denied' } : req
     ));
   };
@@ -192,23 +192,23 @@ function App() {
       </header>
 
       <nav className="app-nav">
-        <button 
+        <button
           className={`nav-tab ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
         >
-           {user?.role === 'admin' ? 'Schedule View' : 'My Schedule'}
+          {user?.role === 'admin' ? 'Schedule View' : 'My Schedule'}
         </button>
-        <button 
+        <button
           className={`nav-tab ${activeTab === 'timeoff' ? 'active' : ''}`}
           onClick={() => setActiveTab('timeoff')}
         >
-           {user?.role === 'admin' ? 'Time Off Management' : 'Request Time Off'}
+          {user?.role === 'admin' ? 'Time Off Management' : 'Request Time Off'}
         </button>
       </nav>
 
       <main className="app-content">
         {activeTab === 'schedule' && (
-          <ScheduleView 
+          <ScheduleView
             scheduleData={scheduleData}
             onAutoSchedule={handleAutoSchedule}
             userRole={user?.role}
@@ -219,7 +219,7 @@ function App() {
           />
         )}
         {activeTab === 'timeoff' && (
-          <TimeOffManagement 
+          <TimeOffManagement
             timeOffRequests={timeOffRequests}
             onRequestTimeOff={handleRequestTimeOff}
             onApproveRequest={handleApproveRequest}
@@ -231,7 +231,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Rota Management System - Proof of Concept © 2025 | Mock Data Demo</p>
+        <p>Rota Management System - Proof of Concept © 2026 | Mock Data Demo</p>
       </footer>
     </div>
   );

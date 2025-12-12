@@ -37,11 +37,11 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
   };
 
   return (
-    <div className="time-off-management">
-      <div className="time-off-header">
+    <div className="timeOffManagement">
+      <div className="timeOffHeader">
         <h2>{userRole === 'admin' ? 'Time Off Management' : 'My Time Off Requests'}</h2>
         <button 
-          className="btn-primary"
+          className="requestButton"
           onClick={() => setShowRequestForm(!showRequestForm)}
         >
           {showRequestForm ? 'Cancel' : '+ Request Time Off'}
@@ -49,11 +49,11 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
       </div>
 
       {showRequestForm && (
-        <div className="request-form-container">
+        <div className="requestFormContainer">
           <h3>New Time Off Request</h3>
-          <form onSubmit={handleSubmit} className="request-form">
-            <div className="form-row">
-              <div className="form-group">
+          <form onSubmit={handleSubmit} className="requestForm">
+            <div className="formRow">
+              <div className="formGroup">
                 <label>Start Date</label>
                 <input 
                   type="date"
@@ -63,7 +63,7 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
                 />
               </div>
 
-              <div className="form-group">
+              <div className="formGroup">
                 <label>End Date</label>
                 <input 
                   type="date"
@@ -74,7 +74,7 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="formGroup">
               <label>Type</label>
               <select 
                 value={formData.type}
@@ -88,7 +88,7 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
               </select>
             </div>
 
-            <div className="form-group">
+            <div className="formGroup">
               <label>Reason (Optional)</label>
               <textarea 
                 value={formData.reason}
@@ -98,18 +98,18 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
               />
             </div>
 
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="requestButton">
               Submit Request
             </button>
           </form>
         </div>
       )}
 
-      <div className="requests-list">
+      <div className="requestList">
         <h3>{userRole === 'admin' ? 'All Time Off Requests' : 'My Requests'}</h3>
         
         {userRole === 'admin' && (
-          <div className="filter-tabs">
+          <div className="filterTabs">
             <button className="tab active">All Requests</button>
             <button className="tab">Pending</button>
             <button className="tab">Approved</button>
@@ -117,52 +117,52 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
           </div>
         )}
 
-        <div className="requests-table">
+        <div className="requestTable">
           {displayRequests.length === 0 ? (
-            <div className="empty-state">
+            <div className="emptyState">
               <p>No time off requests yet. Click "Request Time Off" to create one.</p>
             </div>
           ) : (
             displayRequests.map(request => {
               return (
-                <div key={request.id} className="request-card">
-                  <div className="request-header">
+                <div key={request.id} className="requestCard">
+                  <div className="requestHeader">
                     <div>
                       {userRole === 'admin' && <h4>{request.employee}</h4>}
-                      <span className={`status-badge ${getStatusColor(request.status)}`}>
+                      <span className={`statusBadge ${getStatusColor(request.status)}`}>
                         {request.status.toUpperCase()}
                       </span>
                     </div>
-                    <span className="request-type">{request.type}</span>
+                    <span className="requestType">{request.type}</span>
                   </div>
                   
-                  <div className="request-details">
-                    <div className="detail-item">
+                  <div className="requestDetails">
+                    <div className="detailItem">
                       <strong>Dates:</strong> {request.startDate} to {request.endDate}
                     </div>
                     {request.reason && (
-                      <div className="detail-item">
+                      <div className="detailItem">
                         <strong>Reason:</strong> {request.reason}
                       </div>
                     )}
-                    <div className="detail-item">
+                    <div className="detailItem">
                       <strong>Requested on:</strong> {request.requestedDate}
                     </div>
                   </div>
 
                   {request.status === 'pending' && userRole === 'admin' && (
-                    <div className="request-actions">
+                    <div className="requestActions">
                       <button 
-                        className="btn-approve"
+                        className="approveButton"
                         onClick={() => onApproveRequest(request.id)}
                       >
-                        ✓ Approve
+                       Approve
                       </button>
                       <button 
-                        className="btn-deny"
+                        className="denyButton"
                         onClick={() => onDenyRequest(request.id)}
                       >
-                        ✗ Deny
+                         Deny
                       </button>
                     </div>
                   )}
@@ -174,24 +174,24 @@ const TimeOffManagement = ({ timeOffRequests, onRequestTimeOff, onApproveRequest
       </div>
 
       {userRole === 'admin' && (
-        <div className="time-off-summary">
+        <div className="timeOffSummary">
           <h3>Summary Dashboard</h3>
-          <div className="summary-cards">
-            <div className="summary-card">
-              <div className="summary-value">{timeOffRequests.filter(r => r.status === 'pending').length}</div>
-              <div className="summary-label">Pending Requests</div>
+          <div className="summaryCards">
+            <div className="summaryCard">
+              <div className="summaryValue">{timeOffRequests.filter(r => r.status === 'pending').length}</div>
+              <div className="summaryLabel">Pending Requests</div>
             </div>
-            <div className="summary-card">
-              <div className="summary-value">{timeOffRequests.filter(r => r.status === 'approved').length}</div>
-              <div className="summary-label">Approved</div>
+            <div className="summaryCard">
+              <div className="summaryValue">{timeOffRequests.filter(r => r.status === 'approved').length}</div>
+              <div className="summaryLabel">Approved</div>
             </div>
-            <div className="summary-card">
-              <div className="summary-value">87%</div>
-              <div className="summary-label">Coverage Rate</div>
+            <div className="summaryCard">
+              <div className="summaryValue">87%</div>
+              <div className="summaryLabel">Coverage Rate</div>
             </div>
-            <div className="summary-card">
-              <div className="summary-value">2</div>
-              <div className="summary-label">Conflicts Detected</div>
+            <div className="summaryCard">
+              <div className="summaryValue">2</div>
+              <div className="summaryLabel">Conflicts Detected</div>
             </div>
           </div>
         </div>

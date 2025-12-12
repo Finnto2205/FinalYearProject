@@ -34,20 +34,20 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
   const displayEmployees = userRole === 'admin' ? employees : [currentEmployee];
 
   return (
-    <div className="schedule-view">
-      <div className="schedule-header">
+    <div className="scheduleView">
+      <div className="scheduleHeader">
         <h2>{userRole === 'admin' ? 'Weekly Schedule' : 'My Schedule'}</h2>
-        <div className="schedule-controls">
+        <div className="scheduleControls">
           <button 
-            className="btn-secondary"
+            className="weekButton"
             onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
             disabled={selectedWeek === 0}
           >
             ← Previous Week
           </button>
-          <span className="week-indicator">Week {selectedWeek + 1}</span>
+          <span className="week">Week {selectedWeek + 1}</span>
           <button 
-            className="btn-secondary"
+            className="weekButton"
             onClick={() => setSelectedWeek(selectedWeek + 1)}
           >
             Next Week →
@@ -61,7 +61,7 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
                 {isEditing ? 'Save Changes' : 'Edit Schedule'}
               </button>
               <button 
-                className="btn-primary"
+                className="generateButton"
                 onClick={() => onAutoSchedule(selectedWeek)}
               >
                 Auto-Generate Schedule
@@ -72,31 +72,31 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
       </div>
 
       {isEditing && userRole === 'admin' && (
-        <div className="edit-mode-banner">
+        <div className="editMode">
           <span>Edit Mode: Click on any shift to assign/unassign employees</span>
         </div>
       )}
 
-      <div className="schedule-grid">
-        <div className="schedule-table">
-          <div className="schedule-row header-row">
-            {userRole === 'admin' && <div className="cell employee-header">Employee</div>}
+      <div className="scheduleGrid">
+        <div className="scheduleTable">
+          <div className="scheduleHeaderRow">
+            {userRole === 'admin' && <div className="employeeHeader">Employee</div>}
             {days.map(day => (
-              <div key={day} className="cell day-header">{day}</div>
+              <div key={day} className="dayHeader">{day}</div>
             ))}
           </div>
 
           {displayEmployees.map(employee => (
-            <div key={employee} className="schedule-row">
-              {userRole === 'admin' && <div className="cell employee-cell">{employee}</div>}
+            <div key={employee} className="scheduleRow">
+              {userRole === 'admin' && <div className="employeeCell">{employee}</div>}
               {days.map(day => (
-                <div key={day} className="cell shift-cell">
+                <div key={day} className="shiftCell">
                   {shifts.map((shift, idx) => {
                     const isAssigned = getShiftStatus(day, shift, employee);
                     return (
                       <div 
                         key={shift}
-                        className={`shift-badge ${isAssigned ? 'assigned' : 'unassigned'} ${isEditing && userRole === 'admin' ? 'editable' : ''}`}
+                        className={`shiftBadge ${isAssigned ? 'assigned' : 'unassigned'} ${isEditing && userRole === 'admin' ? 'editable' : ''}`}
                         onClick={() => handleShiftClick(day, shift, employee)}
                         title={isEditing && userRole === 'admin' ? 'Click to toggle' : ''}
                       >
@@ -112,18 +112,18 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
       </div>
 
       {userRole === 'admin' && (
-        <div className="schedule-legend">
+        <div className="scheduleLegend">
           <h3>Schedule Status</h3>
           <div className="insights">
-            <div className="insight-item">
+            <div className="insight">
               <span className="indicator success"></span>
               <span>Optimal Coverage: All shifts adequately staffed</span>
             </div>
-            <div className="insight-item">
+            <div className="insight">
               <span className="indicator warning"></span>
               <span>Warning: Potential understaffing detected</span>
             </div>
-            <div className="insight-item">
+            <div className="insight">
               <span className="indicator info"></span>
               <span>System considers: Time off requests, employee preferences, labor regulations</span>
             </div>

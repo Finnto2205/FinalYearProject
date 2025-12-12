@@ -3,7 +3,7 @@ import './Login.css';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
-    username: '',
+    userName: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -12,7 +12,7 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     setError('');
 
-    const success = onLogin(formData.username, formData.password);
+    const success = onLogin(formData.userName, formData.password);
     
     if (!success) {
       setError('Invalid username or password');
@@ -27,27 +27,27 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
+    <div className="loginContainer">
+      <div className="loginCard">
+        <div className="loginHeader">
           <h1>Rota Management</h1>
           <p>Employee Scheduling System</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="loginForm">
           {error && (
-            <div className="error-message">
+            <div className="errorMessage">
               <span>{error}</span>
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="username">Username or Email</label>
+          <div className="formGroup">
+            <label htmlFor="userName">userName or Email</label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="userName"
+              name="userName"
+              value={formData.userName}
               onChange={handleChange}
               placeholder="Enter your username"
               required
@@ -55,7 +55,7 @@ const Login = ({ onLogin }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="formGroup">
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -70,23 +70,23 @@ const Login = ({ onLogin }) => {
 
           <button 
             type="submit" 
-            className="btn-login"
+            className="loginButton"
           >
             Login
           </button>
         </form>
 
-        <div className="login-footer">
-          <div className="demo-credentials">
+        <div className="loginFooter">
+          <div className="credentials">
             <h4>Demo Credentials:</h4>
-            <div className="credentials-list">
-              <div className="credential-item">
+            <div className="credentialsList">
+              <div className="info">
                 <strong>Admin:</strong>
-                <span>Username: admin | Password: admin123</span>
+                <span>userName: admin | Password: admin123</span>
               </div>
-              <div className="credential-item">
+              <div className="info">
                 <strong>User:</strong>
-                <span>Username: user | Password: user123</span>
+                <span>userName: user | Password: user123</span>
               </div>
             </div>
           </div>
