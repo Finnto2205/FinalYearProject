@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import './Login.css';
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, loading }) => {
   const [formData, setFormData] = useState({
     userName: '',
     password: ''
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    const success = onLogin(formData.userName, formData.password);
+    const success = await onLogin(formData.userName, formData.password);
     
     if (!success) {
       setError('Invalid username or password');
@@ -52,6 +52,7 @@ const Login = ({ onLogin }) => {
               placeholder="Enter your username"
               required
               autoFocus
+              disabled={loading}
             />
           </div>
 
@@ -65,14 +66,16 @@ const Login = ({ onLogin }) => {
               onChange={handleChange}
               placeholder="Enter your password"
               required
+              disabled={loading}
             />
           </div>
 
           <button 
             type="submit" 
             className="loginButton"
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

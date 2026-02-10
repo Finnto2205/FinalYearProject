@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ScheduleView.css';
 
-const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee, isEditing, onToggleEdit, onScheduleChange }) => {
+const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee, isEditing, onToggleEdit, onScheduleChange, onWeekChange }) => {
   const [selectedWeek, setSelectedWeek] = useState(0);
+
+  // Fetch data when week changes
+  useEffect(() => {
+    if (onWeekChange) {
+      onWeekChange(selectedWeek);
+    }
+  }, [selectedWeek, onWeekChange]);
   
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const shifts = ['Morning (7AM-11AM)', 'Afternoon (12PM-8PM)', 'Night (4PM-12AM)'];

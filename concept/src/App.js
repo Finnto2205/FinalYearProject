@@ -1,100 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Login from './components/Login';
 import ScheduleView from './components/ScheduleView';
 import TimeOffManagement from './components/TimeOffManagement';
+
+const API_URL = 'http://localhost:5000/api';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('schedule');
   const [isEditing, setIsEditing] = useState(false);
-  const [scheduleData, setScheduleData] = useState({
-    0: {
-      'Monday': {
-        'Morning (7AM-11AM)': ['Alice Johnson', 'Bob Smith'],
-        'Afternoon (12PM-8PM)': ['Carol White', 'David Brown'],
-        'Night (4PM-12AM)': ['Emma Davis']
-      },
-      'Tuesday': {
-        'Morning (7AM-11AM)': ['Bob Smith', 'Carol White'],
-        'Afternoon (12PM-8PM)': ['Alice Johnson', 'Emma Davis'],
-        'Night (4PM-12AM)': ['David Brown']
-      },
-      'Wednesday': {
-        'Morning (7AM-11AM)': ['Carol White', 'David Brown'],
-        'Afternoon (12PM-8PM)': ['Bob Smith', 'Emma Davis'],
-        'Night (4PM-12AM)': ['Alice Johnson']
-      },
-      'Thursday': {
-        'Morning (7AM-11AM)': ['David Brown', 'Emma Davis'],
-        'Afternoon (12PM-8PM)': ['Carol White', 'Alice Johnson'],
-        'Night (4PM-12AM)': ['Bob Smith']
-      },
-      'Friday': {
-        'Morning (7AM-11AM)': ['Emma Davis', 'Alice Johnson'],
-        'Afternoon (12PM-8PM)': ['David Brown', 'Bob Smith'],
-        'Night (4PM-12AM)': ['Carol White']
-      },
-      'Saturday': {
-        'Morning (7AM-11AM)': ['Alice Johnson', 'Carol White'],
-        'Afternoon (12PM-8PM)': ['Bob Smith', 'Emma Davis'],
-        'Night (4PM-12AM)': ['David Brown']
-      },
-      'Sunday': {
-        'Morning (7AM-11AM)': ['Bob Smith', 'David Brown'],
-        'Afternoon (12PM-8PM)': ['Emma Davis', 'Carol White'],
-        'Night (4PM-12AM)': ['Alice Johnson']
-      }
-    }
-  });
+  const [scheduleData, setScheduleData] = useState({});
+  const [timeOffRequests, setTimeOffRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const [timeOffRequests, setTimeOffRequests] = useState([
-    {
-      id: 1,
-      employee: 'Alice Johnson',
-      startDate: '2026-12-15',
-      endDate: '2026-12-17',
-      type: 'vacation',
-      reason: 'Family holiday',
-      status: 'pending',
-      requestedDate: '2026-12-05'
-    },
-    {
-      id: 2,
-      employee: 'Bob Smith',
-      startDate: '2026-12-20',
-      endDate: '2026-12-22',
-      type: 'sick',
-      reason: 'Medical appointment',
-      status: 'approved',
-      requestedDate: '2026-12-03'
-    },
-    {
-      id: 3,
-      employee: 'Carol White',
-      startDate: '2026-12-18',
-      endDate: '2026-12-18',
-      type: 'personal',
-      reason: '',
-      status: 'pending',
-      requestedDate: '2026-12-08'
+  // Fetch schedule data from backend
+  const fetchScheduleData = async (week = 0) => {
+    try {
+      const response = await fetch(`${API_URL}/schedule/week/${week}`);
+      if (!response.ok) throw new Error('Failed to fetch schedule');
+      const data = await response.json();
+      setScheduleData(prevData => ({
+        ...prevData,
+        [week]: data
+      }));
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
     }
-  ]);
-
-  const handleLogin = (username, password) => {
-    // Simple authentication check
-    if (username === 'admin' && password === 'admin123') {
-      setUser({ username: 'admin', role: 'admin', fullName: 'Administrator', employeeName: 'Administrator' });
-      setIsAuthenticated(true);
-      return true;
-    } else if (username === 'user' && password === 'user123') {
-      setUser({ username: 'user', role: 'user', fullName: 'Regular User', employeeName: 'Alice Johnson' });
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
   };
+
+  // Fetch time off requests from backend
+  const fetchTimeOffRequests = async () => {
+    try {
+      const response = await fetch(`${API_URL}/timeoff/requests`);
+      if (!response.ok) throw new Error('Failed to fetch time off requests');
+      const data = await response.json();
+      setTimeOffRequests(data);
+    } catch (error) {
+      console.error('Error fetching time off requests:', error);
+    }
+  };
+
+  // Load data when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchScheduleData(0);
+      fetchTimeOffRequests();
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = async (username, password) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Login failed:', error);
+        return false;
+      }
+
+      const data = await response.json();
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -105,70 +89,118 @@ function App() {
     setIsEditing(!isEditing);
   };
 
-  const handleScheduleChange = (week, day, shift, employee, isAssigned) => {
-    setScheduleData(prevData => {
-      const newData = { ...prevData };
+  const handleWeekChange = (week) => {
+    // Fetch data for the selected week if not already loaded
+    if (!scheduleData[week]) {
+      fetchScheduleData(week);
+    }
+  };
 
-      // Initialize week if it doesn't exist
-      if (!newData[week]) {
-        newData[week] = {};
-      }
+  const handleScheduleChange = async (week, day, shift, employee, isAssigned) => {
+    try {
+      const response = await fetch(`${API_URL}/schedule/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          week,
+          day,
+          shift,
+          employeeName: employee,
+          isAssigned
+        })
+      });
 
-      // Initialize day if it doesn't exist
-      if (!newData[week][day]) {
-        newData[week][day] = {};
-      }
+      if (!response.ok) throw new Error('Failed to update schedule');
 
-      // Initialize shift if it doesn't exist
-      if (!newData[week][day][shift]) {
-        newData[week][day][shift] = [];
-      }
+      // Update local state
+      setScheduleData(prevData => {
+        const newData = { ...prevData };
+        if (!newData[week]) newData[week] = {};
+        if (!newData[week][day]) newData[week][day] = {};
+        if (!newData[week][day][shift]) newData[week][day][shift] = [];
 
-      // Toggle employee assignment
-      if (isAssigned) {
-        // Remove employee from shift
-        newData[week][day][shift] = newData[week][day][shift].filter(emp => emp !== employee);
-      } else {
-        // Add employee to shift
-        newData[week][day][shift] = [...newData[week][day][shift], employee];
-      }
+        if (isAssigned) {
+          newData[week][day][shift] = newData[week][day][shift].filter(emp => emp !== employee);
+        } else {
+          newData[week][day][shift] = [...newData[week][day][shift], employee];
+        }
 
-      return newData;
-    });
+        return newData;
+      });
+    } catch (error) {
+      console.error('Error updating schedule:', error);
+      // Refresh schedule if update fails
+      fetchScheduleData(week);
+    }
   };
 
   const handleAutoSchedule = (week) => {
     alert(`Auto-generating schedule for Week ${week + 1}...\nThis would use automated logic to assign shifts based on availability, preferences, and fairness.`);
   };
 
-  const handleRequestTimeOff = (formData) => {
-    const newRequest = {
-      id: timeOffRequests.length + 1,
-      employee: user?.employeeName || 'Current User',
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      type: formData.type,
-      reason: formData.reason,
-      status: 'pending',
-      requestedDate: new Date().toISOString().split('T')[0]
-    };
-    setTimeOffRequests([newRequest, ...timeOffRequests]);
+  const handleRequestTimeOff = async (formData) => {
+    try {
+      const response = await fetch(`${API_URL}/timeoff/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeName: user?.employeeName || 'Current User',
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          type: formData.type,
+          reason: formData.reason
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to create time off request');
+
+      // Refresh time off requests
+      fetchTimeOffRequests();
+    } catch (error) {
+      console.error('Error creating time off request:', error);
+    }
   };
 
-  const handleApproveRequest = (id) => {
-    setTimeOffRequests(timeOffRequests.map(req =>
-      req.id === id ? { ...req, status: 'approved' } : req
-    ));
+  const handleApproveRequest = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/timeoff/approve/${id}`, {
+        method: 'POST'
+      });
+
+      if (!response.ok) throw new Error('Failed to approve request');
+
+      // Update local state
+      setTimeOffRequests(timeOffRequests.map(req =>
+        req.id === id ? { ...req, status: 'approved' } : req
+      ));
+    } catch (error) {
+      console.error('Error approving request:', error);
+    }
   };
 
-  const handleDenyRequest = (id) => {
-    setTimeOffRequests(timeOffRequests.map(req =>
-      req.id === id ? { ...req, status: 'denied' } : req
-    ));
+  const handleDenyRequest = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/timeoff/deny/${id}`, {
+        method: 'POST'
+      });
+
+      if (!response.ok) throw new Error('Failed to deny request');
+
+      // Update local state
+      setTimeOffRequests(timeOffRequests.map(req =>
+        req.id === id ? { ...req, status: 'denied' } : req
+      ));
+    } catch (error) {
+      console.error('Error denying request:', error);
+    }
   };
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={handleLogin} loading={loading} />;
   }
 
   return (
@@ -216,6 +248,7 @@ function App() {
             isEditing={isEditing}
             onToggleEdit={handleToggleEdit}
             onScheduleChange={handleScheduleChange}
+            onWeekChange={handleWeekChange}
           />
         )}
         {activeTab === 'timeoff' && (
