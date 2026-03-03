@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './ScheduleView.css';
 
-const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee, isEditing, onToggleEdit, onScheduleChange, onWeekChange }) => {
+const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee, isEditing, onToggleEdit, onScheduleChange, onWeekChange, apiUrl, scheduling }) => {
   const [selectedWeek, setSelectedWeek] = useState(0);
 
   // Fetch data when week changes
@@ -35,10 +35,42 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
     return shiftData.length === 0 || shiftData.length > 3;
   };
 
-  const employees = ['Alice Johnson', 'Bob Smith', 'Carol White', 'David Brown', 'Emma Davis'];
-  
-  // Filter employees based on role
+  const [employees, setEmployees] = useState([]);
+  const [employeesError, setEmployeesError] = useState(null);
+
+  // load employee list from server once
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/schedule/employees`);
+        if (res.ok) {
+          const list = await res.json();
+          const names = list.map(e => e.employee_name);
+          setEmployees(names);
+          console.log('employees fetched', names);
+        } else {
+          const msg = `Failed to load employees: ${res.status} ${res.statusText}`;
+          console.error(msg);
+          setEmployeesError(msg);
+        }
+      } catch (err) {
+        console.error('Error fetching employees', err);
+        setEmployeesError(err.message);
+      }
+    };
+    // fetch regardless of role so we have full roster available
+    fetchEmployees();
+  }, [apiUrl]);
+
+  // show all employees for admin; non-admin still sees only their own row
   const displayEmployees = userRole === 'admin' ? employees : [currentEmployee];
+
+  if (employeesError) {
+    return <div>Error loading employees: {employeesError}</div>;
+  }
+  if (employees.length === 0) {
+    return <div>Loading employees or no staff defined</div>;
+  }
 
   return (
     <div className="scheduleView">
@@ -70,8 +102,9 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
               <button 
                 className="generateButton"
                 onClick={() => onAutoSchedule(selectedWeek)}
+                disabled={scheduling}
               >
-                Auto-Generate Schedule
+                {scheduling ? 'Generating...' : 'Auto-Generate Schedule'}
               </button>
             </>
           )}

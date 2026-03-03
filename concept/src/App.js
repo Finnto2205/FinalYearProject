@@ -14,6 +14,7 @@ function App() {
   const [scheduleData, setScheduleData] = useState({});
   const [timeOffRequests, setTimeOffRequests] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
 
   // Fetch schedule data from backend
   const fetchScheduleData = async (week = 0) => {
@@ -136,8 +137,80 @@ function App() {
     }
   };
 
-  const handleAutoSchedule = (week) => {
-    alert(`Auto-generating schedule for Week ${week + 1}...\nThis would use automated logic to assign shifts based on availability, preferences, and fairness.`);
+  const handleAutoSchedule = async (week) => {
+    setScheduling(true);
+    try {
+      const response = await fetch(`${API_URL}/schedule/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ week })
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to generate schedule');
+      }
+      const generated = await response.json();
+
+      // helper maps to convert scheduler output (short codes) to the labels used by our UI/DB
+      const dayMap = {
+        Mon: 'Monday',
+        Tue: 'Tuesday',
+        Wed: 'Wednesday',
+        Thu: 'Thursday',
+        Fri: 'Friday',
+        Sat: 'Saturday',
+        Sun: 'Sunday'
+      };
+      const shiftMap = {
+        Morning: 'Morning (7AM-11AM)',
+        Afternoon: 'Afternoon (12PM-8PM)',
+        Evening: 'Night (4PM-12AM)'
+      };
+
+      // transform array of assignments into nested object shape
+      setScheduleData(prevData => {
+        const newData = { ...prevData };
+        newData[week] = {};
+        generated.forEach(item => {
+          const rawDay = item.day;
+          const rawShift = item.shift;
+          const employee = item.employee_name;
+          const dayFull = dayMap[rawDay] || rawDay;
+          const shiftFull = shiftMap[rawShift] || rawShift;
+
+          if (!newData[week][dayFull]) newData[week][dayFull] = {};
+          if (!newData[week][dayFull][shiftFull]) newData[week][dayFull][shiftFull] = [];
+          newData[week][dayFull][shiftFull].push(employee);
+        });
+        return newData;
+      });
+
+      // also persist to backend schedules table (use mapped values)
+      generated.forEach(item => {
+        const rawDay = item.day;
+        const rawShift = item.shift;
+        const employee = item.employee_name;
+        const dayFull = dayMap[rawDay] || rawDay;
+        const shiftFull = shiftMap[rawShift] || rawShift;
+
+        fetch(`${API_URL}/schedule/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            week,
+            day: dayFull,
+            shift: shiftFull,
+            employeeName: employee,
+            isAssigned: false // false because we are assigning
+          })
+        }).catch(err => console.error('Error saving generated shift', err));
+      });
+    } catch (error) {
+      console.error('Error generating schedule:', error);
+      alert('Failed to auto-generate schedule. See console for details.');
+    } finally {
+      setScheduling(false);
+    }
   };
 
   const handleRequestTimeOff = async (formData) => {
@@ -249,6 +322,8 @@ function App() {
             onToggleEdit={handleToggleEdit}
             onScheduleChange={handleScheduleChange}
             onWeekChange={handleWeekChange}
+            apiUrl={API_URL}
+            scheduling={scheduling}
           />
         )}
         {activeTab === 'timeoff' && (

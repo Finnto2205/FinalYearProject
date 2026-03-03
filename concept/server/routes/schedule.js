@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const { spawn } = require('child_process');
 
 // Get schedule for a specific week
 router.get('/week/:week', async (req, res) => {
@@ -82,9 +83,9 @@ router.get('/employees', async (req, res) => {
   try {
     const connection = await db.getConnection();
 
+    // fetch anyone who isn't an admin (legacy rows may be 'user' or 'staff')
     const [employees] = await connection.execute(
-      'SELECT id, employee_name FROM users WHERE role = ?',
-      ['user']
+      "SELECT id, employee_name FROM users WHERE role <> 'admin'",
     );
 
     connection.release();
@@ -94,6 +95,42 @@ router.get('/employees', async (req, res) => {
     console.error('Error fetching employees:', error);
     res.status(500).json({ error: 'Failed to fetch employees', message: error.message });
   }
+});
+router.post('/generate', async (req, res) => {
+    const { week } = req.body || {};
+    // pass week through to python script for logging/debug
+    const args = ['scheduler.py'];
+    if (week !== undefined) {
+        args.push(String(week));
+    }
+    const pythonProcess = spawn('python', args);
+
+    let data = '';
+    let errorData = '';
+
+    pythonProcess.stdout.on('data', (chunk) => {
+        data += chunk.toString();
+    });
+
+    pythonProcess.stderr.on('data', (chunk) => {
+        errorData += chunk.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+
+        if (code !== 0) {
+            console.error("Python error:", errorData);
+            return res.status(500).json({ error: "Schedule generation failed" });
+        }
+
+        try {
+            const schedule = JSON.parse(data);
+            res.json(schedule);
+        } catch (err) {
+            console.error("JSON parse error:", err);
+            res.status(500).json({ error: "Invalid scheduler output" });
+        }
+    });
 });
 
 module.exports = router;

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   full_name VARCHAR(255) NOT NULL,
   employee_name VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'user') DEFAULT 'user',
+  role ENUM('admin', 'staff') DEFAULT 'staff',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -39,34 +39,31 @@ CREATE TABLE IF NOT EXISTS time_off_requests (
 -- Insert sample users
 INSERT INTO users (username, password, full_name, employee_name, role) VALUES
 ('admin', 'admin123', 'Administrator', 'Administrator', 'admin'),
-('user', 'user123', 'Regular User', 'Alice Johnson', 'user'),
-('bob', 'bob123', 'Bob User', 'Bob Smith', 'user'),
-('carol', 'carol123', 'Carol User', 'Carol White', 'user'),
-('david', 'david123', 'David User', 'David Brown', 'user'),
-('emma', 'emma123', 'Emma User', 'Emma Davis', 'user')
+('staff', 'user123', 'Regular User', 'Alice Johnson', 'staff'),
+('bob', 'bob123', 'Bob User', 'Bob Smith', 'staff'),
+('carol', 'carol123', 'Carol User', 'Carol White', 'staff'),
+('david', 'david123', 'David User', 'David Brown', 'staff'),
+('emma', 'emma123', 'Emma User', 'Emma Davis', 'staff'),
+('frank', 'frank123', 'Frank User', 'Frank Miller', 'staff'),
+('george', 'george123', 'George User', 'George King', 'staff'),
+('helen', 'helen123', 'Helen User', 'Helen Lee', 'staff'),
+('ian', 'ian123', 'Ian User', 'Ian Clark', 'staff'),
+('jane', 'jane123', 'Jane User', 'Jane Adams', 'staff')
 ON DUPLICATE KEY UPDATE created_at=created_at;
 
 -- Insert sample schedules for week 0
 INSERT INTO schedules (week, day, shift, employee_name) VALUES
 (0, 'Monday', 'Morning (7AM-11AM)', 'Alice Johnson'),
 (0, 'Monday', 'Morning (7AM-11AM)', 'Bob Smith'),
-(0, 'Monday', 'Afternoon (12PM-8PM)', 'Carol White'),
-(0, 'Monday', 'Afternoon (12PM-8PM)', 'David Brown'),
 (0, 'Monday', 'Night (4PM-12AM)', 'Emma Davis'),
 (0, 'Tuesday', 'Morning (7AM-11AM)', 'Bob Smith'),
 (0, 'Tuesday', 'Morning (7AM-11AM)', 'Carol White'),
-(0, 'Tuesday', 'Afternoon (12PM-8PM)', 'Alice Johnson'),
-(0, 'Tuesday', 'Afternoon (12PM-8PM)', 'Emma Davis'),
 (0, 'Tuesday', 'Night (4PM-12AM)', 'David Brown'),
 (0, 'Wednesday', 'Morning (7AM-11AM)', 'Carol White'),
 (0, 'Wednesday', 'Morning (7AM-11AM)', 'David Brown'),
-(0, 'Wednesday', 'Afternoon (12PM-8PM)', 'Bob Smith'),
-(0, 'Wednesday', 'Afternoon (12PM-8PM)', 'Emma Davis'),
 (0, 'Wednesday', 'Night (4PM-12AM)', 'Alice Johnson'),
 (0, 'Thursday', 'Morning (7AM-11AM)', 'David Brown'),
 (0, 'Thursday', 'Morning (7AM-11AM)', 'Emma Davis'),
-(0, 'Thursday', 'Afternoon (12PM-8PM)', 'Carol White'),
-(0, 'Thursday', 'Afternoon (12PM-8PM)', 'Alice Johnson'),
 (0, 'Thursday', 'Night (4PM-12AM)', 'Bob Smith'),
 (0, 'Friday', 'Morning (7AM-11AM)', 'Emma Davis'),
 (0, 'Friday', 'Morning (7AM-11AM)', 'Alice Johnson'),
