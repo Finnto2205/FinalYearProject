@@ -5,7 +5,7 @@ const pool = mysql.createPool({
   host: 'localhost',
   port: 3306,
   user: 'root',
-  password: 'Password', // Change this to your MySQL root password
+  password: 'Password', 
   database: 'rota_management',
   waitForConnections: true,
   connectionLimit: 10,

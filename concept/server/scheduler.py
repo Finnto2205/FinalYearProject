@@ -107,7 +107,7 @@ def generate_schedule(employees, time_off):
         model.Add(
             sum(shifts_vars[(e, d, s)]
                 for d in range(len(days))
-                for s in range(len(shifts))) <= 10
+                for s in range(len(shifts))) <= 5
         )
 
     # -------------------------

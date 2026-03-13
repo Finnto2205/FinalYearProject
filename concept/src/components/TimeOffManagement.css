@@ -203,6 +203,30 @@
   margin-bottom: 15px;
 }
 
+.requestButton {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.requestButton:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.requestButton:active {
+  transform: translateY(0);
+}
+
 .ai-recommendation.success {
   background: #d4edda;
   border-left: 4px solid #27ae60;
