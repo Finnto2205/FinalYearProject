@@ -1,6 +1,11 @@
 import json
 import mysql.connector
 from ortools.sat.python import cp_model
+from datetime import datetime, timedelta
+
+def get_week_dates(start_date):
+    # start_date is a datetime.date object (e.g., Monday)
+    return [start_date + timedelta(days=i) for i in range(7)]
 
 
 # -------------------------
@@ -140,18 +145,20 @@ def generate_schedule(employees, time_off):
         "Evening": "Night (4PM-12AM)"
     }
 
+    week_dates = get_week_dates(start_date)  # start_date is the Monday
+
     for e in range(num_employees):
         for d in range(len(days)):
             for s in range(len(shifts)):
                 if solver.Value(shifts_vars[(e, d, s)]) == 1:
-                    raw_day = days[d]
-                    raw_shift = shifts[s]
+                    shift_date = week_dates[d]
                     schedule_output.append({
                         # database returns username field, not name
                         "employee_name": employees[e].get("username") or employees[e].get("name"),
                         # convert to full labels for easier frontend handling
-                        "day": full_day_map.get(raw_day, raw_day),
-                        "shift": full_shift_map.get(raw_shift, raw_shift)
+                        "date": shift_date.strftime("%Y-%m-%d"),
+                        "day": full_day_map.get(days[d], days[d]),
+                        "shift": full_shift_map.get(shifts[s], shifts[s])
                     })
 
     return schedule_output
