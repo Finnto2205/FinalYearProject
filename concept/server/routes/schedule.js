@@ -85,7 +85,7 @@ router.get('/employees', async (req, res) => {
 
     // fetch anyone who isn't an admin (legacy rows may be 'user' or 'staff')
     const [employees] = await connection.execute(
-      "SELECT id, employee_name FROM users WHERE role <> 'admin'",
+      "SELECT MIN(id) AS id, employee_name FROM users WHERE role <> 'admin' GROUP BY employee_name ORDER BY employee_name",
     );
 
     connection.release();
@@ -97,40 +97,40 @@ router.get('/employees', async (req, res) => {
   }
 });
 router.post('/generate', async (req, res) => {
-    const { week } = req.body || {};
-    // pass week through to python script for logging/debug
-    const args = ['scheduler.py'];
-    if (week !== undefined) {
-        args.push(String(week));
+  const { week } = req.body || {};
+  // pass week through to python script for logging/debug
+  const args = ['scheduler.py'];
+  if (week !== undefined) {
+    args.push(String(week));
+  }
+  const pythonProcess = spawn('python', args);
+
+  let data = '';
+  let errorData = '';
+
+  pythonProcess.stdout.on('data', (chunk) => {
+    data += chunk.toString();
+  });
+
+  pythonProcess.stderr.on('data', (chunk) => {
+    errorData += chunk.toString();
+  });
+
+  pythonProcess.on('close', (code) => {
+
+    if (code !== 0) {
+      console.error("Python error:", errorData);
+      return res.status(500).json({ error: "Schedule generation failed" });
     }
-    const pythonProcess = spawn('python', args);
 
-    let data = '';
-    let errorData = '';
-
-    pythonProcess.stdout.on('data', (chunk) => {
-        data += chunk.toString();
-    });
-
-    pythonProcess.stderr.on('data', (chunk) => {
-        errorData += chunk.toString();
-    });
-
-    pythonProcess.on('close', (code) => {
-
-        if (code !== 0) {
-            console.error("Python error:", errorData);
-            return res.status(500).json({ error: "Schedule generation failed" });
-        }
-
-        try {
-            const schedule = JSON.parse(data);
-            res.json(schedule);
-        } catch (err) {
-            console.error("JSON parse error:", err);
-            res.status(500).json({ error: "Invalid scheduler output" });
-        }
-    });
+    try {
+      const schedule = JSON.parse(data);
+      res.json(schedule);
+    } catch (err) {
+      console.error("JSON parse error:", err);
+      res.status(500).json({ error: "Invalid scheduler output" });
+    }
+  });
 });
 
 module.exports = router;

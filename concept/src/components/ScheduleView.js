@@ -10,10 +10,32 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
       onWeekChange(selectedWeek);
     }
   }, [selectedWeek, onWeekChange]);
-  
+
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const getWeekStartDate = (weekOffset) => {
+    const now = new Date();
+    const mondayBasedDay = (now.getDay() + 6) % 7; // Monday=0 ... Sunday=6
+    const monday = new Date(now);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(now.getDate() - mondayBasedDay + (weekOffset * 7));
+    return monday;
+  };
+
+  const weekStartDate = getWeekStartDate(selectedWeek);
+  const dayColumns = days.map((day, index) => {
+    const date = new Date(weekStartDate);
+    date.setDate(weekStartDate.getDate() + index);
+
+    return {
+      day,
+      dateLabel: date.toLocaleDateString('en-IE', {
+        day: '2-digit',
+        month: 'short'
+      })
+    };
+  });
   const shifts = ['Morning (7AM-11AM)', 'Afternoon (12PM-8PM)', 'Night (4PM-12AM)'];
-  
+
   const currentWeekData = scheduleData[selectedWeek] || {};
 
   const getShiftStatus = (day, shift, employee) => {
@@ -45,7 +67,7 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
         const res = await fetch(`${apiUrl}/schedule/employees`);
         if (res.ok) {
           const list = await res.json();
-          const names = list.map(e => e.employee_name);
+          const names = [...new Set(list.map(e => e.employee_name))];
           setEmployees(names);
           console.log('employees fetched', names);
         } else {
@@ -72,12 +94,17 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
     return <div>Loading employees or no staff defined</div>;
   }
 
+  const getShiftTime = (shift) => {
+    const match = shift.match(/\(([^)]+)\)/);
+    return match ? match[1] : shift;
+  };
+
   return (
     <div className="scheduleView">
       <div className="scheduleHeader">
         <h2>{userRole === 'admin' ? 'Weekly Schedule' : 'My Schedule'}</h2>
         <div className="scheduleControls">
-          <button 
+          <button
             className="weekButton"
             onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
             disabled={selectedWeek === 0}
@@ -85,7 +112,7 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
             ← Previous Week
           </button>
           <span className="week">Week {selectedWeek + 1}</span>
-          <button 
+          <button
             className="weekButton"
             onClick={() => setSelectedWeek(selectedWeek + 1)}
           >
@@ -93,13 +120,13 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
           </button>
           {userRole === 'admin' && (
             <>
-              <button 
+              <button
                 className={`btn-${isEditing ? 'warning' : 'secondary'}`}
                 onClick={onToggleEdit}
               >
                 {isEditing ? 'Save Changes' : 'Edit Schedule'}
               </button>
-              <button 
+              <button
                 className="generateButton"
                 onClick={() => onAutoSchedule(selectedWeek)}
                 disabled={scheduling}
@@ -121,26 +148,26 @@ const ScheduleView = ({ scheduleData, onAutoSchedule, userRole, currentEmployee,
         <div className="scheduleTable">
           <div className="scheduleHeaderRow">
             {userRole === 'admin' && <div className="employeeHeader">Employee</div>}
-            {days.map(day => (
-              <div key={day} className="dayHeader">{day}</div>
+            {dayColumns.map(({ day, dateLabel }) => (
+              <div key={day} className="dayHeader" title={day}>{dateLabel}</div>
             ))}
           </div>
 
           {displayEmployees.map(employee => (
             <div key={employee} className="scheduleRow">
               {userRole === 'admin' && <div className="employeeCell">{employee}</div>}
-              {days.map(day => (
+              {dayColumns.map(({ day }) => (
                 <div key={day} className="shiftCell">
-                  {shifts.map((shift, idx) => {
+                  {shifts.map((shift) => {
                     const isAssigned = getShiftStatus(day, shift, employee);
                     return (
-                      <div 
+                      <div
                         key={shift}
                         className={`shiftBadge ${isAssigned ? 'assigned' : 'unassigned'} ${isEditing && userRole === 'admin' ? 'editable' : ''}`}
                         onClick={() => handleShiftClick(day, shift, employee)}
                         title={isEditing && userRole === 'admin' ? 'Click to toggle' : ''}
                       >
-                        {isAssigned ? shift.split(' ')[0] : '-'}
+                        {isAssigned ? getShiftTime(shift) : '-'}
                       </div>
                     );
                   })}

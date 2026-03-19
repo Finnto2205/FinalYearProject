@@ -70,16 +70,16 @@ async function runSetup() {
 
   // ensure default staff members exist – avoids needing a separate seed script
   const defaultStaff = [
-    ['staff','user123','Regular User','Alice Johnson'],
-    ['bob','bob123','Bob User','Bob Smith'],
-    ['carol','carol123','Carol User','Carol White'],
-    ['david','david123','David User','David Brown'],
-    ['emma','emma123','Emma User','Emma Davis'],
-    ['frank','frank123','Frank User','Frank Miller'],
-    ['george','george123','George User','George King'],
-    ['helen','helen123','Helen User','Helen Lee'],
-    ['ian','ian123','Ian User','Ian Clark'],
-    ['jane','jane123','Jane User','Jane Adams']
+    ['staff', 'user123', 'Regular User', 'Alice Johnson'],
+    ['bob', 'bob123', 'Bob User', 'Bob Smith'],
+    ['carol', 'carol123', 'Carol User', 'Carol White'],
+    ['david', 'david123', 'David User', 'David Brown'],
+    ['emma', 'emma123', 'Emma User', 'Emma Davis'],
+    ['frank', 'frank123', 'Frank User', 'Frank Miller'],
+    ['george', 'george123', 'George User', 'George King'],
+    ['helen', 'helen123', 'Helen User', 'Helen Lee'],
+    ['ian', 'ian123', 'Ian User', 'Ian Clark'],
+    ['jane', 'jane123', 'Jane User', 'Jane Adams']
   ];
 
   for (const [username, password, fullName, employeeName] of defaultStaff) {

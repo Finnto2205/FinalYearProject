@@ -13,7 +13,7 @@ const Login = ({ onLogin, loading }) => {
     setError('');
 
     const success = await onLogin(formData.userName, formData.password);
-    
+
     if (!success) {
       setError('Invalid username or password');
     }
@@ -70,8 +70,8 @@ const Login = ({ onLogin, loading }) => {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="loginButton"
             disabled={loading}
           >

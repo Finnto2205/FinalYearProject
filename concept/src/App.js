@@ -4,7 +4,7 @@ import Login from './components/Login';
 import ScheduleView from './components/ScheduleView';
 import TimeOffManagement from './components/TimeOffManagement';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3000/api';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

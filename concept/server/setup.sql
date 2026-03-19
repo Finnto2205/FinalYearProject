@@ -13,13 +13,26 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- If users table already existed with a legacy enum (e.g. admin/user),
+-- migrate it safely to admin/staff.
+ALTER TABLE users
+  MODIFY COLUMN role ENUM('admin', 'staff', 'user') DEFAULT 'staff';
+
+UPDATE users
+SET role = 'staff'
+WHERE role = 'user' OR role = '' OR role IS NULL;
+
+ALTER TABLE users
+  MODIFY COLUMN role ENUM('admin', 'staff') DEFAULT 'staff';
+
 CREATE TABLE IF NOT EXISTS schedules (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  date DATE NOT NULL,
+  week INT NOT NULL,
+  day VARCHAR(20) NOT NULL,
   shift VARCHAR(100) NOT NULL,
   employee_name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY unique_assignment (date, shift, employee_name)
+  UNIQUE KEY unique_assignment (week, day, shift, employee_name)
 );
 
 CREATE TABLE IF NOT EXISTS time_off_requests (
@@ -49,34 +62,34 @@ INSERT INTO users (username, password, full_name, employee_name, role) VALUES
 ON DUPLICATE KEY UPDATE created_at=created_at;
 
 -- Insert sample schedules for week 0
-INSERT INTO schedules (date, shift, employee_name) VALUES
-('2026-03-23', 'Morning (7AM-11AM)', 'Alice Johnson'), -- Monday
-('2026-03-23', 'Morning (7AM-11AM)', 'Bob Smith'),
-('2026-03-23', 'Night (4PM-12AM)', 'Emma Davis'),
-('2026-03-24', 'Morning (7AM-11AM)', 'Bob Smith'), -- Tuesday
-('2026-03-24', 'Morning (7AM-11AM)', 'Carol White'),
-('2026-03-24', 'Night (4PM-12AM)', 'David Brown'),
-('2026-03-25', 'Morning (7AM-11AM)', 'Carol White'), -- Wednesday
-('2026-03-25', 'Morning (7AM-11AM)', 'David Brown'),
-('2026-03-25', 'Night (4PM-12AM)', 'Alice Johnson'),
-('2026-03-26', 'Morning (7AM-11AM)', 'David Brown'), -- Thursday
-('2026-03-26', 'Morning (7AM-11AM)', 'Emma Davis'),
-('2026-03-26', 'Night (4PM-12AM)', 'Bob Smith'),
-('2026-03-27', 'Morning (7AM-11AM)', 'Emma Davis'), -- Friday
-('2026-03-27', 'Morning (7AM-11AM)', 'Alice Johnson'),
-('2026-03-27', 'Afternoon (12PM-8PM)', 'David Brown'),
-('2026-03-27', 'Afternoon (12PM-8PM)', 'Bob Smith'),
-('2026-03-27', 'Night (4PM-12AM)', 'Carol White'),
-('2026-03-28', 'Morning (7AM-11AM)', 'Alice Johnson'), -- Saturday
-('2026-03-28', 'Morning (7AM-11AM)', 'Carol White'),
-('2026-03-28', 'Afternoon (12PM-8PM)', 'Bob Smith'),
-('2026-03-28', 'Afternoon (12PM-8PM)', 'Emma Davis'),
-('2026-03-28', 'Night (4PM-12AM)', 'David Brown'),
-('2026-03-29', 'Morning (7AM-11AM)', 'Bob Smith'), -- Sunday
-('2026-03-29', 'Morning (7AM-11AM)', 'David Brown'),
-('2026-03-29', 'Afternoon (12PM-8PM)', 'Emma Davis'),
-('2026-03-29', 'Afternoon (12PM-8PM)', 'Carol White'),
-('2026-03-29', 'Night (4PM-12AM)', 'Alice Johnson');
+INSERT INTO schedules (week, day, shift, employee_name) VALUES
+(0, 'Monday', 'Morning (7AM-11AM)', 'Alice Johnson'),
+(0, 'Monday', 'Morning (7AM-11AM)', 'Bob Smith'),
+(0, 'Monday', 'Night (4PM-12AM)', 'Emma Davis'),
+(0, 'Tuesday', 'Morning (7AM-11AM)', 'Bob Smith'),
+(0, 'Tuesday', 'Morning (7AM-11AM)', 'Carol White'),
+(0, 'Tuesday', 'Night (4PM-12AM)', 'David Brown'),
+(0, 'Wednesday', 'Morning (7AM-11AM)', 'Carol White'),
+(0, 'Wednesday', 'Morning (7AM-11AM)', 'David Brown'),
+(0, 'Wednesday', 'Night (4PM-12AM)', 'Alice Johnson'),
+(0, 'Thursday', 'Morning (7AM-11AM)', 'David Brown'),
+(0, 'Thursday', 'Morning (7AM-11AM)', 'Emma Davis'),
+(0, 'Thursday', 'Night (4PM-12AM)', 'Bob Smith'),
+(0, 'Friday', 'Morning (7AM-11AM)', 'Emma Davis'),
+(0, 'Friday', 'Morning (7AM-11AM)', 'Alice Johnson'),
+(0, 'Friday', 'Afternoon (12PM-8PM)', 'David Brown'),
+(0, 'Friday', 'Afternoon (12PM-8PM)', 'Bob Smith'),
+(0, 'Friday', 'Night (4PM-12AM)', 'Carol White'),
+(0, 'Saturday', 'Morning (7AM-11AM)', 'Alice Johnson'),
+(0, 'Saturday', 'Morning (7AM-11AM)', 'Carol White'),
+(0, 'Saturday', 'Afternoon (12PM-8PM)', 'Bob Smith'),
+(0, 'Saturday', 'Afternoon (12PM-8PM)', 'Emma Davis'),
+(0, 'Saturday', 'Night (4PM-12AM)', 'David Brown'),
+(0, 'Sunday', 'Morning (7AM-11AM)', 'Bob Smith'),
+(0, 'Sunday', 'Morning (7AM-11AM)', 'David Brown'),
+(0, 'Sunday', 'Afternoon (12PM-8PM)', 'Emma Davis'),
+(0, 'Sunday', 'Afternoon (12PM-8PM)', 'Carol White'),
+(0, 'Sunday', 'Night (4PM-12AM)', 'Alice Johnson')
 ON DUPLICATE KEY UPDATE created_at=created_at;
 
 -- Insert sample time off requests
