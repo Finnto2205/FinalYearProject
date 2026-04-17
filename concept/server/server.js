@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const db = require('./config/database');
 const fs = require('fs');
 const mysql = require('mysql2/promise');
 
 const authRoutes = require('./routes/auth');
 const scheduleRoutes = require('./routes/schedule');
 const timeOffRoutes = require('./routes/timeOff');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const PORT = 5000;
@@ -21,6 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/timeoff', timeOffRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -35,13 +36,23 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log('MySQL connection pool created');
 });
+
+async function ensureAvailableShiftsColumn(conn) {
+  const [rows] = await conn.execute(
+    "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'rota_management' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'available_shifts'"
+  );
+
+  if (rows.length === 0) {
+    console.log('Adding missing available_shifts column to users table');
+    await conn.execute(
+      "ALTER TABLE users ADD COLUMN available_shifts JSON NOT NULL DEFAULT '[\"Morning\",\"Afternoon\",\"Evening\"]'"
+    );
+  }
+}
 
 async function runSetup() {
   const sql = fs.readFileSync(__dirname + '/setup.sql', 'utf8');
-  // mysql2 will reject multi‑statement strings by default. we only need this
-  // during development, so enable the option here.
   const conn = await mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -51,7 +62,6 @@ async function runSetup() {
   try {
     await conn.query(sql);
   } catch (err) {
-    // if multiStatements still fails (older server) split on semicolon
     if (err.code === 'ER_PARSE_ERROR') {
       const stmts = sql
         .split(/;\s*\n/)
@@ -61,14 +71,18 @@ async function runSetup() {
         await conn.query(stmt);
       }
     } else if (err.errno === 1265 /* data truncated for enum */) {
-      // ignore harmless enum/truncation warnings from seed data
       console.warn('setup.sql produced truncation warning, continuing');
     } else {
       throw err;
     }
   }
 
-  // ensure default staff members exist – avoids needing a separate seed script
+  try {
+    await ensureAvailableShiftsColumn(conn);
+  } catch (err) {
+    console.error('Could not ensure available_shifts column exists:', err);
+  }
+
   const defaultStaff = [
     ['staff', 'user123', 'Regular User', 'Alice Johnson'],
     ['bob', 'bob123', 'Bob User', 'Bob Smith'],
@@ -89,14 +103,12 @@ async function runSetup() {
         [username, password, fullName, employeeName, 'staff']
       );
     } catch (err) {
-      // ignore duplicate entry which means row already exists
       if (err.code !== 'ER_DUP_ENTRY') {
         console.error('Error seeding staff user', username, err);
       }
     }
   }
 
-  // correct any legacy/malformed role values (empty or 'user') to 'staff'
   try {
     await conn.execute("UPDATE users SET role='staff' WHERE role <> 'admin'");
   } catch (err) {

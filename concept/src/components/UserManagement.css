@@ -1,0 +1,24 @@
+.userManagement {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.userManagementHeader h2 {
+  margin-bottom: 8px;
+}
+
+.userFormSection,
+.userListSection {
+  min-height: 100%;
+}
+
+.alert {
+  margin-top: 16px;
+}
+
+@media (max-width: 992px) {
+  .userManagement {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+}

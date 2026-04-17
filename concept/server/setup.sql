@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name VARCHAR(255) NOT NULL,
   employee_name VARCHAR(255) NOT NULL,
   role ENUM('admin', 'staff') DEFAULT 'staff',
+  available_shifts JSON NOT NULL DEFAULT '["Morning","Afternoon","Evening"]',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -17,6 +18,9 @@ CREATE TABLE IF NOT EXISTS users (
 -- migrate it safely to admin/staff.
 ALTER TABLE users
   MODIFY COLUMN role ENUM('admin', 'staff', 'user') DEFAULT 'staff';
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS available_shifts JSON NOT NULL DEFAULT '["Morning","Afternoon","Evening"]';
 
 UPDATE users
 SET role = 'staff'

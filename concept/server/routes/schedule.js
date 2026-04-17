@@ -96,6 +96,35 @@ router.get('/employees', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch employees', message: error.message });
   }
 });
+
+router.post('/replace-week', async (req, res) => {
+  try {
+    const { week, assignments } = req.body;
+    if (week === undefined || !Array.isArray(assignments)) {
+      return res.status(400).json({ error: 'Missing week or assignments' });
+    }
+
+    const connection = await db.getConnection();
+    const parsedWeek = parseInt(week, 10);
+
+    await connection.execute('DELETE FROM schedules WHERE week = ?', [parsedWeek]);
+
+    if (assignments.length > 0) {
+      const values = assignments.map(({ day, shift, employeeName }) => [parsedWeek, day, shift, employeeName]);
+      await connection.query(
+        'INSERT INTO schedules (week, day, shift, employee_name) VALUES ?',
+        [values]
+      );
+    }
+
+    connection.release();
+    res.json({ success: true, message: 'Week schedule replaced successfully' });
+  } catch (error) {
+    console.error('Error replacing week schedule:', error);
+    res.status(500).json({ error: 'Failed to replace week schedule', message: error.message });
+  }
+});
+
 router.post('/generate', async (req, res) => {
   const { week } = req.body || {};
   // pass week through to python script for logging/debug

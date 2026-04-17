@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Login from './components/Login';
 import ScheduleView from './components/ScheduleView';
 import TimeOffManagement from './components/TimeOffManagement';
+import UserManagement from './components/UserManagement';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,6 +14,7 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [scheduleData, setScheduleData] = useState({});
   const [timeOffRequests, setTimeOffRequests] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [scheduling, setScheduling] = useState(false);
 
@@ -43,13 +45,30 @@ function App() {
     }
   };
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/users`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
+    }
+  }, []);
+
   // Load data when user is authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchScheduleData(0);
       fetchTimeOffRequests();
+      if (user?.role === 'admin') {
+        fetchUsers();
+      }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.role, fetchUsers]);
 
   const handleLogin = async (username, password) => {
     try {
@@ -84,6 +103,7 @@ function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUser(null);
+    setUsers([]);
   };
 
   const handleToggleEdit = () => {
@@ -185,25 +205,40 @@ function App() {
         return newData;
       });
 
-      // also persist to backend schedules table (use mapped values)
-      generated.forEach(item => {
+      const assignments = generated.map(item => {
         const rawDay = item.day;
         const rawShift = item.shift;
         const employee = item.employee_name;
         const dayFull = dayMap[rawDay] || rawDay;
         const shiftFull = shiftMap[rawShift] || rawShift;
+        return {
+          day: dayFull,
+          shift: shiftFull,
+          employeeName: employee
+        };
+      });
 
-        fetch(`${API_URL}/schedule/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            week,
-            day: dayFull,
-            shift: shiftFull,
-            employeeName: employee,
-            isAssigned: false // false because we are assigning
-          })
-        }).catch(err => console.error('Error saving generated shift', err));
+      const saveResponse = await fetch(`${API_URL}/schedule/replace-week`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ week, assignments })
+      });
+
+      if (!saveResponse.ok) {
+        const payload = await saveResponse.json();
+        throw new Error(payload.error || 'Failed to save generated schedule');
+      }
+
+      // Update local state from generated schedule
+      setScheduleData(prevData => {
+        const newData = { ...prevData };
+        newData[week] = {};
+        assignments.forEach(({ day, shift, employeeName }) => {
+          if (!newData[week][day]) newData[week][day] = {};
+          if (!newData[week][day][shift]) newData[week][day][shift] = [];
+          newData[week][day][shift].push(employeeName);
+        });
+        return newData;
       });
     } catch (error) {
       console.error('Error generating schedule:', error);
@@ -272,6 +307,43 @@ function App() {
     }
   };
 
+  const handleCreateUser = async (newUser) => {
+    const response = await fetch(`${API_URL}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser)
+    });
+    if (!response.ok) {
+      const payload = await response.json();
+      throw new Error(payload.error || 'Failed to create user');
+    }
+    await fetchUsers();
+  };
+
+  const handleUpdateUser = async (userId, updatedData) => {
+    const response = await fetch(`${API_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedData)
+    });
+    if (!response.ok) {
+      const payload = await response.json();
+      throw new Error(payload.error || 'Failed to update user');
+    }
+    await fetchUsers();
+  };
+
+  const handleDeleteUser = async (userId) => {
+    const response = await fetch(`${API_URL}/users/${userId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) {
+      const payload = await response.json();
+      throw new Error(payload.error || 'Failed to delete user');
+    }
+    await fetchUsers();
+  };
+
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} loading={loading} />;
   }
@@ -279,7 +351,7 @@ function App() {
   return (
     <div className="App">
       <header className="appHeader">
-        <div className="headerContent">
+        <div className="headerContent container">
           <div className="headerLeft">
             <h1>Rota Management System</h1>
             <p>Employee Scheduling & Time Off Management - Proof of Concept</p>
@@ -297,21 +369,31 @@ function App() {
       </header>
 
       <nav className="appNavbar">
-        <button
-          className={`navTab ${activeTab === 'schedule' ? 'active' : ''}`}
-          onClick={() => setActiveTab('schedule')}
-        >
-          {user?.role === 'admin' ? 'Schedule View' : 'My Schedule'}
-        </button>
-        <button
-          className={`navTab ${activeTab === 'timeoff' ? 'active' : ''}`}
-          onClick={() => setActiveTab('timeoff')}
-        >
-          {user?.role === 'admin' ? 'Time Off Management' : 'Request Time Off'}
-        </button>
+        <div className="container d-flex justify-content-center flex-wrap">
+          <button
+            className={`navTab ${activeTab === 'schedule' ? 'active' : ''} btn btn-link`}
+            onClick={() => setActiveTab('schedule')}
+          >
+            {user?.role === 'admin' ? 'Schedule View' : 'My Schedule'}
+          </button>
+          <button
+            className={`navTab ${activeTab === 'timeoff' ? 'active' : ''} btn btn-link`}
+            onClick={() => setActiveTab('timeoff')}
+          >
+            {user?.role === 'admin' ? 'Time Off Management' : 'Request Time Off'}
+          </button>
+          {user?.role === 'admin' && (
+            <button
+              className={`navTab ${activeTab === 'users' ? 'active' : ''} btn btn-link`}
+              onClick={() => setActiveTab('users')}
+            >
+              Manage Users
+            </button>
+          )}
+        </div>
       </nav>
 
-      <main className="contents">
+      <main className="contents container">
         {activeTab === 'schedule' && (
           <ScheduleView
             scheduleData={scheduleData}
@@ -334,6 +416,15 @@ function App() {
             onDenyRequest={handleDenyRequest}
             userRole={user?.role}
             currentEmployee={user?.employeeName}
+          />
+        )}
+        {activeTab === 'users' && user?.role === 'admin' && (
+          <UserManagement
+            users={users}
+            onCreateUser={handleCreateUser}
+            onUpdateUser={handleUpdateUser}
+            onDeleteUser={handleDeleteUser}
+            refreshUsers={fetchUsers}
           />
         )}
       </main>

@@ -36,9 +36,8 @@ def fetch_data():
     cursor = conn.cursor(dictionary=True)
 
     # Get employees (any non-admin entry counts as staff, handle legacy role values)
-    # use employee_name so scheduler prints human-readable names
     cursor.execute(
-        "SELECT DISTINCT employee_name AS username FROM users WHERE role <> 'admin'"
+        "SELECT employee_name, available_shifts FROM users WHERE role <> 'admin'"
     )
     employees = cursor.fetchall()
 
@@ -72,7 +71,7 @@ def generate_schedule(employees, time_off, week_offset=0):
 
     # Build a quick lookup so time off records can be mapped to employee index.
     name_to_employee_index = {
-        (emp.get("username") or emp.get("name")): idx
+        emp.get("employee_name"): idx
         for idx, emp in enumerate(employees)
     }
 
@@ -176,6 +175,23 @@ def generate_schedule(employees, time_off, week_offset=0):
             current_date += timedelta(days=1)
 
     # -------------------------
+    # CONSTRAINT 4b:
+    # Respect employee availability for each shift.
+    # -------------------------
+    for e, emp in enumerate(employees):
+        available = emp.get('available_shifts') or ['Morning', 'Afternoon', 'Evening']
+        if isinstance(available, str):
+            try:
+                available = json.loads(available)
+            except Exception:
+                available = ['Morning', 'Afternoon', 'Evening']
+
+        for d in range(len(days)):
+            for s in range(len(shifts)):
+                if shifts[s] not in available:
+                    model.Add(shifts_vars[(e, d, s)] == 0)
+
+    # -------------------------
     # SOLVE
     # -------------------------
     solver = cp_model.CpSolver()
@@ -211,9 +227,7 @@ def generate_schedule(employees, time_off, week_offset=0):
                 if solver.Value(shifts_vars[(e, d, s)]) == 1:
                     shift_date = week_dates[d]
                     schedule_output.append({
-                        # database returns username field, not name
-                        "employee_name": employees[e].get("username") or employees[e].get("name"),
-                        # convert to full labels for easier frontend handling
+                        "employee_name": employees[e].get("employee_name"),
                         "date": shift_date.strftime("%Y-%m-%d"),
                         "day": full_day_map.get(days[d], days[d]),
                         "shift": full_shift_map.get(shifts[s], shifts[s])

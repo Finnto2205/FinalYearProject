@@ -27,26 +27,27 @@ const Login = ({ onLogin, loading }) => {
   };
 
   return (
-    <div className="loginContainer">
-      <div className="loginCard">
-        <div className="loginHeader">
+    <div className="loginContainer d-flex align-items-center justify-content-center min-vh-100">
+      <div className="loginCard card shadow-sm p-4" style={{ maxWidth: '480px', width: '100%' }}>
+        <div className="loginHeader mb-4 text-center">
           <h1>Rota Management</h1>
-          <p>Employee Scheduling System</p>
+          <p className="text-muted">Employee Scheduling System</p>
         </div>
 
         <form onSubmit={handleSubmit} className="loginForm">
           {error && (
-            <div className="errorMessage">
-              <span>{error}</span>
+            <div className="alert alert-danger" role="alert">
+              {error}
             </div>
           )}
 
-          <div className="formGroup">
-            <label htmlFor="userName">userName or Email</label>
+          <div className="mb-3">
+            <label htmlFor="userName" className="form-label">Username or Email</label>
             <input
               type="text"
               id="userName"
               name="userName"
+              className="form-control"
               value={formData.userName}
               onChange={handleChange}
               placeholder="Enter your username"
@@ -56,12 +57,13 @@ const Login = ({ onLogin, loading }) => {
             />
           </div>
 
-          <div className="formGroup">
-            <label htmlFor="password">Password</label>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
               id="password"
               name="password"
+              className="form-control"
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter your password"
@@ -72,14 +74,14 @@ const Login = ({ onLogin, loading }) => {
 
           <button
             type="submit"
-            className="loginButton"
+            className="loginButton btn btn-primary w-100"
             disabled={loading}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
-        <div className="loginFooter">
+        <div className="loginFooter mt-4">
           <div className="credentials">
             <h4>Demo Credentials:</h4>
             <div className="credentialsList">
