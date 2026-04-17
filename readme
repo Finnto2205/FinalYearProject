@@ -1,0 +1,6 @@
+npm i on server 
+npm i on concept
+python -m pip install --upgrade pip
+python -m pip install mysql-connector-python ortools both on server
+change "Password" to lower case p
+create database in mySQL ide called "rota_management"
