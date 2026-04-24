@@ -110,7 +110,14 @@ router.post('/replace-week', async (req, res) => {
     await connection.execute('DELETE FROM schedules WHERE week = ?', [parsedWeek]);
 
     if (assignments.length > 0) {
-      const values = assignments.map(({ day, shift, employeeName }) => [parsedWeek, day, shift, employeeName]);
+      // Deduplicate assignments to prevent duplicate entry errors
+      const uniqueAssignments = Array.from(new Set(
+        assignments.map(({ day, shift, employeeName }) => 
+          JSON.stringify({ day, shift, employeeName })
+        )
+      )).map(item => JSON.parse(item));
+
+      const values = uniqueAssignments.map(({ day, shift, employeeName }) => [parsedWeek, day, shift, employeeName]);
       await connection.query(
         'INSERT INTO schedules (week, day, shift, employee_name) VALUES ?',
         [values]

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name VARCHAR(255) NOT NULL,
   employee_name VARCHAR(255) NOT NULL,
   role ENUM('admin', 'staff') DEFAULT 'staff',
-  available_shifts JSON NOT NULL DEFAULT '["Morning","Afternoon","Evening"]',
+  available_shifts JSON,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -18,9 +18,6 @@ CREATE TABLE IF NOT EXISTS users (
 -- migrate it safely to admin/staff.
 ALTER TABLE users
   MODIFY COLUMN role ENUM('admin', 'staff', 'user') DEFAULT 'staff';
-
-ALTER TABLE users
-  ADD COLUMN IF NOT EXISTS available_shifts JSON NOT NULL DEFAULT '["Morning","Afternoon","Evening"]';
 
 UPDATE users
 SET role = 'staff'
@@ -51,18 +48,18 @@ CREATE TABLE IF NOT EXISTS time_off_requests (
 );
 
 -- Insert sample users
-INSERT INTO users (username, password, full_name, employee_name, role) VALUES
-('admin', 'admin123', 'Administrator', 'Administrator', 'admin'),
-('staff', 'user123', 'Regular User', 'Alice Johnson', 'staff'),
-('bob', 'bob123', 'Bob User', 'Bob Smith', 'staff'),
-('carol', 'carol123', 'Carol User', 'Carol White', 'staff'),
-('david', 'david123', 'David User', 'David Brown', 'staff'),
-('emma', 'emma123', 'Emma User', 'Emma Davis', 'staff'),
-('frank', 'frank123', 'Frank User', 'Frank Miller', 'staff'),
-('george', 'george123', 'George User', 'George King', 'staff'),
-('helen', 'helen123', 'Helen User', 'Helen Lee', 'staff'),
-('ian', 'ian123', 'Ian User', 'Ian Clark', 'staff'),
-('jane', 'jane123', 'Jane User', 'Jane Adams', 'staff')
+INSERT INTO users (username, password, full_name, employee_name, role, available_shifts) VALUES
+('admin', 'admin123', 'Administrator', 'Administrator', 'admin', '["Morning","Afternoon","Evening"]'),
+('staff', 'user123', 'Regular User', 'Alice Johnson', 'staff', '["Morning","Afternoon","Evening"]'),
+('bob', 'bob123', 'Bob User', 'Bob Smith', 'staff', '["Morning","Afternoon","Evening"]'),
+('carol', 'carol123', 'Carol User', 'Carol White', 'staff', '["Morning","Afternoon","Evening"]'),
+('david', 'david123', 'David User', 'David Brown', 'staff', '["Morning","Afternoon","Evening"]'),
+('emma', 'emma123', 'Emma User', 'Emma Davis', 'staff', '["Morning","Afternoon","Evening"]'),
+('frank', 'frank123', 'Frank User', 'Frank Miller', 'staff', '["Morning","Afternoon","Evening"]'),
+('george', 'george123', 'George User', 'George King', 'staff', '["Morning","Afternoon","Evening"]'),
+('helen', 'helen123', 'Helen User', 'Helen Lee', 'staff', '["Morning","Afternoon","Evening"]'),
+('ian', 'ian123', 'Ian User', 'Ian Clark', 'staff', '["Morning","Afternoon","Evening"]'),
+('jane', 'jane123', 'Jane User', 'Jane Adams', 'staff', '["Morning","Afternoon","Evening"]')
 ON DUPLICATE KEY UPDATE created_at=created_at;
 
 -- Insert sample schedules for week 0

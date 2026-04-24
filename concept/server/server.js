@@ -46,7 +46,7 @@ async function ensureAvailableShiftsColumn(conn) {
   if (rows.length === 0) {
     console.log('Adding missing available_shifts column to users table');
     await conn.execute(
-      "ALTER TABLE users ADD COLUMN available_shifts JSON NOT NULL DEFAULT '[\"Morning\",\"Afternoon\",\"Evening\"]'"
+      "ALTER TABLE users ADD COLUMN available_shifts JSON"
     );
   }
 }
@@ -99,8 +99,8 @@ async function runSetup() {
   for (const [username, password, fullName, employeeName] of defaultStaff) {
     try {
       await conn.execute(
-        'INSERT INTO users (username,password,full_name,employee_name,role) VALUES (?, ?, ?, ?, ?)',
-        [username, password, fullName, employeeName, 'staff']
+        'INSERT INTO users (username,password,full_name,employee_name,role,available_shifts) VALUES (?, ?, ?, ?, ?, ?)',
+        [username, password, fullName, employeeName, 'staff', JSON.stringify(['Morning', 'Afternoon', 'Evening'])]
       );
     } catch (err) {
       if (err.code !== 'ER_DUP_ENTRY') {
